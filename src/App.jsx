@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Converter from './components/Converter.jsx'
 import PeriodSelector from './components/PeriodSelector.jsx'
 import RateChart from './components/RateChart.jsx'
+import HistoryTable from './components/HistoryTable.jsx'
 import styles from './App.module.css'
 import { useCurrencies } from './hooks/useCurrencies.js'
 import { useLatestRate } from './hooks/useLatestRate.js'
@@ -133,6 +134,15 @@ export default function App() {
           </div>
 
           <RateChart
+            rows={rows}
+            from={from}
+            to={to}
+            loading={historyLoading}
+            error={historyError}
+            onRetry={reloadHistory}
+          />
+
+          <HistoryTable
             rows={rows}
             from={from}
             to={to}
