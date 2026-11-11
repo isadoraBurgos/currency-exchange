@@ -1,6 +1,114 @@
-/*
- * Componente raiz. Será implementado na etapa "feat: componentes da aplicação".
+import { useState } from 'react'
+import Converter from './components/Converter.jsx'
+import styles from './App.module.css'
+import { useCurrencies } from './hooks/useCurrencies.js'
+import { useLatestRate } from './hooks/useLatestRate.js'
+import { DEFAULT_FROM, DEFAULT_TO } from './constants/periods.js'
+
+/**
+ * Componente raiz da aplicação.
+ *
+ * Aqui mora o **estado compartilhado** (lifting state up): `from`, `to` e
+ * `amount` são usados por mais de um componente, então o `App` guarda os
+ * valores e os distribui por `props`.
  */
 export default function App() {
-  return <p>Currency Exchange App</p>
+  // Moeda de origem selecionada.
+  const [from, setFrom] = useState(DEFAULT_FROM)
+  // Moeda de destino selecionada.
+  const [to, setTo] = useState(DEFAULT_TO)
+  // Valor digitado pelo usuário (guardado como texto).
+  const [amount, setAmount] = useState('100')
+
+  // Hooks que cuidam de talking com a API.
+  const { data: currencies, error: currenciesError, reload: reloadCurrencies } =
+    useCurrencies()
+  const {
+    data: latest,
+    loading: rateLoading,
+    error: rateError,
+    reload: reloadRate,
+  } = useLatestRate(from, to)
+
+  /**
+   * Inverte origem e destino.
+   * O valor digitado é mantido (regra de negócio RN04).
+   */
+  function handleSwap() {
+    setFrom(to)
+    setTo(from)
+  }
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <div className={styles.brand}>
+            <span className={styles.logo} aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 17l6-6 4 4 8-8" />
+                <path d="M14 7h7v7" />
+              </svg>
+            </span>
+
+            <div>
+              <h1 className={styles.title}>Currency Exchange App</h1>
+              <p className={styles.tagline}>
+                Conversão e histórico de cotações em tempo real
+              </p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className={styles.main}>
+        {currenciesError && (
+          <p role="alert" className={styles.tagline}>
+            {currenciesError}{' '}
+            <button type="button" onClick={reloadCurrencies}>
+              Tentar novamente
+            </button>
+          </p>
+        )}
+
+        <Converter
+          from={from}
+          to={to}
+          amount={amount}
+          currencies={currencies}
+          rate={latest.rate}
+          rateDate={latest.date}
+          loading={rateLoading}
+          error={rateError}
+          onFromChange={setFrom}
+          onToChange={setTo}
+          onAmountChange={setAmount}
+          onSwap={handleSwap}
+          onRetry={reloadRate}
+        />
+      </main>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <span>
+            Dados de referência fornecidos pela{' '}
+            <a href="https://frankfurter.dev" target="_blank" rel="noreferrer">
+              Frankfurter API
+            </a>
+            .
+          </span>
+          <span>Projeto didático em React.</span>
+        </div>
+      </footer>
+    </div>
+  )
 }

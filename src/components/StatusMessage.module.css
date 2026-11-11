@@ -1,0 +1,84 @@
+/* Mensagem de estado padronizada (carregando / erro / vazio). */
+
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.error {
+  border-color: var(--color-negative);
+  background-color: var(--color-negative-soft);
+  color: var(--color-negative);
+}
+
+.empty {
+  background-color: var(--color-surface-alt);
+}
+
+.icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.message {
+  color: inherit;
+}
+
+.error .message {
+  font-weight: 500;
+}
+
+/* Spinner feito só com CSS (sem imagem e sem biblioteca). */
+.spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--color-line-strong);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.action {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid currentColor;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.action:hover {
+  background-color: var(--color-surface);
+  color: var(--color-brand-strong);
+}
+
+.error .action:hover {
+  color: var(--color-negative);
+}
