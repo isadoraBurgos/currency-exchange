@@ -111,6 +111,24 @@ export function convert(amount, rate) {
 }
 
 /**
+ * Formata uma taxa de câmbio como número puro (sem símbolo de moeda).
+ *
+ * Uma taxa é uma razão entre duas moedas: "1 USD = 5,5517 BRL".
+ * Mostrar "R$ 5,5517" ficaria confuso, então usamos só o número.
+ *
+ * @param {number} rate
+ * @param {number} [maximumFractionDigits=4]
+ * @returns {string} ex.: '5,5517'
+ */
+export function formatRate(rate, maximumFractionDigits = 4) {
+  if (typeof rate !== 'number' || !Number.isFinite(rate)) return ''
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits,
+  }).format(rate)
+}
+
+/**
  * Formata um número como moeda usando `Intl` no padrão pt-BR.
  *
  * @param {number} value
