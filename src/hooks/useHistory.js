@@ -27,12 +27,8 @@ export function useHistory(from, to, periodId) {
   const isSameCurrency = from === to
 
   useEffect(() => {
-    if (isSameCurrency) {
-      setRows([])
-      setLoading(false)
-      setError(SAME_CURRENCY_MESSAGE)
-      return undefined
-    }
+    // Par igual: não há histórico para buscar (a API devolveria erro).
+    if (isSameCurrency) return undefined
 
     const controller = new AbortController()
 
@@ -69,6 +65,12 @@ export function useHistory(from, to, periodId) {
   }, [from, to, periodId, isSameCurrency, reloadToken])
 
   const reload = useCallback(() => setReloadToken((token) => token + 1), [])
+
+  // Par igual: a lista é vazia e a mensagem explica o motivo.
+  // O valor é derivado durante a renderização, sem `useState`.
+  if (isSameCurrency) {
+    return { rows: [], loading: false, error: SAME_CURRENCY_MESSAGE, reload }
+  }
 
   return { rows, loading, error, reload }
 }
