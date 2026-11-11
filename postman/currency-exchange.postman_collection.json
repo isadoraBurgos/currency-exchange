@@ -1,0 +1,382 @@
+{
+  "info": {
+    "_postman_id": "b1f3a6d2-8c47-4e21-9a35-currencyexch01",
+    "name": "Currency Exchange App — Frankfurter API",
+    "description": "Coleção de testes da API Frankfurter (v1) usada pelo Currency Exchange App.\n\nOs casos de erro (par igual e moeda inválida) devem responder com status 422 e 404 respectivamente.\n\nResultados da execução real: docs/API_TESTS.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.frankfurter.dev/v1",
+      "type": "string"
+    },
+    {
+      "key": "from",
+      "value": "USD",
+      "type": "string"
+    },
+    {
+      "key": "to",
+      "value": "BRL",
+      "type": "string"
+    },
+    {
+      "key": "startDate",
+      "value": "2024-01-01",
+      "type": "string"
+    },
+    {
+      "key": "endDate",
+      "value": "2024-03-01",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 — Moedas disponíveis",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/currencies",
+          "host": ["{{baseUrl}}"],
+          "path": ["currencies"]
+        },
+        "description": "Lista as moedas disponíveis.\n\nResposta esperada: 200 OK, um objeto no formato {\"USD\": \"United States Dollar\", ...}.\nNa data da última execução (10/11/2026) foram devolvidas 30 moedas."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Devolve ao menos 2 moedas', () => {",
+              "  const moedas = pm.response.json();",
+              "  pm.expect(Object.keys(moedas).length).to.be.above(1);",
+              "});",
+              "",
+              "pm.test('É um objeto no formato { CODIGO: nome }', () => {",
+              "  const moedas = pm.response.json();",
+              "  const primeira = Object.entries(moedas)[0];",
+              "  pm.expect(primeira[0]).to.be.a('string');",
+              "  pm.expect(primeira[0]).to.match(/^[A-Z]{3}$/);",
+              "  pm.expect(primeira[1]).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — Última cotação EUR → USD",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/latest?base=EUR&symbols=USD",
+          "host": ["{{baseUrl}}"],
+          "path": ["latest"],
+          "query": [
+            { "key": "base", "value": "EUR" },
+            { "key": "symbols", "value": "USD" }
+          ]
+        },
+        "description": "Cotação mais recente do par EUR → USD.\n\nResposta esperada: 200 OK, no formato {\"amount\":1.0,\"base\":\"EUR\",\"date\":\"AAAA-MM-DD\",\"rates\":{\"USD\":1.1214}}.\n\nA API NÃO faz conversão: o valor final é calculado na aplicação (valor × taxa)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Tem amount, base, date e rates', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('amount');",
+              "  pm.expect(body.base).to.eql('EUR');",
+              "  pm.expect(body.date).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+              "  pm.expect(body.rates).to.have.property('USD');",
+              "});",
+              "",
+              "pm.test('A taxa é positiva', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.rates.USD).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Última cotação USD → BRL",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/latest?base={{from}}&symbols={{to}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["latest"],
+          "query": [
+            { "key": "base", "value": "{{from}}" },
+            { "key": "symbols", "value": "{{to}}" }
+          ]
+        },
+        "description": "Cotação mais recente do par usado como padrão no app (USD → BRL).\n\nResposta esperada: 200 OK."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Devolve a taxa da moeda de destino', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.rates).to.have.property(pm.variables.get('to'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 — Histórico por intervalo",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/{{startDate}}..{{endDate}}?base={{from}}&symbols={{to}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["{{startDate}}..{{endDate}}"],
+          "query": [
+            { "key": "base", "value": "{{from}}" },
+            { "key": "symbols", "value": "{{to}}" }
+          ]
+        },
+        "description": "Série histórica de cotações no intervalo informado.\n\nResposta esperada: 200 OK, com \"rates\" no formato {\"AAAA-MM-DD\": {\"BRL\": 4.8888}}.\n\nAtenção: o start_date devolvido pode ser ANTERIOR à data pedida (a API encaixa no primeiro dia útil disponível) e não há ponto para fins de semana e feriados."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Devolve rates com várias datas', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('rates');",
+              "  pm.expect(Object.keys(body.rates).length).to.be.above(1);",
+              "});",
+              "",
+              "pm.test('Todas as datas estão no formato AAAA-MM-DD', () => {",
+              "  const body = pm.response.json();",
+              "  Object.keys(body.rates).forEach((data) => {",
+              "    pm.expect(data).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+              "  });",
+              "});",
+              "",
+              "pm.test('Não há ponto em fins de semana (sábado/domingo)', () => {",
+              "  const body = pm.response.json();",
+              "  const dias = Object.keys(body.rates).map((d) => new Date(d + 'T00:00:00Z').getUTCDay());",
+              "  pm.expect(dias).to.not.include(0);",
+              "  pm.expect(dias).to.not.include(6);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 — ERRO esperado: par igual (USD → USD)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/latest?base=USD&symbols=USD",
+          "host": ["{{baseUrl}}"],
+          "path": ["latest"],
+          "query": [
+            { "key": "base", "value": "USD" },
+            { "key": "symbols", "value": "USD" }
+          ]
+        },
+        "description": "Caso de ERRO ESPERADO: quando origem e destino são a mesma moeda, a API responde 422.\n\nResposta esperada: 422 Unprocessable Entity, com o corpo {\"message\":\"bad currency pair\"}.\n\nA aplicação nunca faz esta chamada: o hook useLatestRate devolve taxa 1 sem tocar na rede quando from === to."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 422 Unprocessable Entity', () => {",
+              "  pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test('Devolve a mensagem \"bad currency pair\"', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.message).to.eql('bad currency pair');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 — ERRO esperado: moeda inválida (XXX → BRL)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/latest?base=XXX&symbols=BRL",
+          "host": ["{{baseUrl}}"],
+          "path": ["latest"],
+          "query": [
+            { "key": "base", "value": "XXX" },
+            { "key": "symbols", "value": "BRL" }
+          ]
+        },
+        "description": "Caso de ERRO ESPERADO: código de moeda que não existe.\n\nResposta esperada: 404 Not Found, com o corpo {\"message\":\"not found\"}.\n\nA aplicação transforma isso em uma mensagem de erro em português (ver src/services/frankfurter.js)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 404 Not Found', () => {",
+              "  pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Devolve a mensagem \"not found\"', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.message).to.eql('not found');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 — Data sem cotação (fim de semana)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/2024-01-06..2024-01-07?base=USD&symbols=BRL",
+          "host": ["{{baseUrl}}"],
+          "path": ["2024-01-06..2024-01-07"],
+          "query": [
+            { "key": "base", "value": "USD" },
+            { "key": "symbols", "value": "BRL" }
+          ]
+        },
+        "description": "Sábado e domingo não têm cotação publicada.\n\nResposta esperada: 200 OK (NÃO é erro!). A API encaixa no dia útil mais próximo e devolve apenas 2024-01-05 (sexta-feira).\n\nÉ por isso que a aplicação usa a data efetiva devolvida pela API e nunca assume um ponto por dia."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK (não é erro)', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Encaixa no dia útil anterior (2024-01-05)', () => {",
+              "  const body = pm.response.json();",
+              "  const datas = Object.keys(body.rates);",
+              "  pm.expect(datas).to.include('2024-01-05');",
+              "  pm.expect(datas).to.not.include('2024-01-06');",
+              "  pm.expect(datas).to.not.include('2024-01-07');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 — Data sem cotação (feriado de Ano Novo)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/2024-01-01?base=USD&symbols=BRL",
+          "host": ["{{baseUrl}}"],
+          "path": ["2024-01-01"],
+          "query": [
+            { "key": "base", "value": "USD" },
+            { "key": "symbols", "value": "BRL" }
+          ]
+        },
+        "description": "1º de janeiro é feriado: a API devolve o último dia útil anterior.\n\nResposta esperada: 200 OK, com \"date\":\"2023-12-29\"."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Devolve a data efetiva 2023-12-29', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.date).to.eql('2023-12-29');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 — Período longo (10 anos)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/2016-11-10..2026-11-10?base=USD&symbols=BRL",
+          "host": ["{{baseUrl}}"],
+          "path": ["2016-11-10..2026-11-10"],
+          "query": [
+            { "key": "base", "value": "USD" },
+            { "key": "symbols", "value": "BRL" }
+          ]
+        },
+        "description": "Verifica o comportamento em período longo (o período de 10 anos do app).\n\nResposta esperada: 200 OK com milhares de pontos (na execução de 10/11/2026 foram 2559 pontos diários).\n\nLembre-se: a API pode agregar dados (semanal/mensal) em períodos longos, então o app nunca deve assumir um ponto por dia."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 OK', () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Devolve muitos pontos', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(Object.keys(body.rates).length).to.be.above(1000);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
