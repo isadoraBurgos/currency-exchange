@@ -206,6 +206,8 @@ Realizados em 10/11/2026 no Chromium, contra a API real.
 | 10.23 | Bytes do arquivo exportado | Começa com `EF BB BF` (**BOM UTF-8**), para o Excel abrir os acentos certo | ✅ |
 | 10.24 | Largura de 360 px | Sem rolagem horizontal da página; a tabela rola dentro do contêiner (311 px de largura para 560 px de conteúdo) | ✅ |
 | 10.25 | Lighthouse (acessibilidade) | Nota **1.0**; boas práticas **1.0** | ✅ |
+| 10.26 | **API fora do ar** (requisições bloqueadas no navegador) | 4 mensagens de erro em português + botão "Tentar novamente"; resultado mostra "—"; tabela vazia; **0 exceções não tratadas** | ✅ |
+| 10.27 | Build de produção (`npm run build` + `npm run preview`) | Título "Currency Exchange App", `lang="pt-BR"`, gráfico carregado sob demanda, 23 linhas na tabela, sem erros no console | ✅ |
 
 ---
 
