@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import Converter from './components/Converter.jsx'
+import PeriodSelector from './components/PeriodSelector.jsx'
+import RateChart from './components/RateChart.jsx'
 import styles from './App.module.css'
 import { useCurrencies } from './hooks/useCurrencies.js'
 import { useLatestRate } from './hooks/useLatestRate.js'
-import { DEFAULT_FROM, DEFAULT_TO } from './constants/periods.js'
+import { useHistory } from './hooks/useHistory.js'
+import {
+  DEFAULT_FROM,
+  DEFAULT_TO,
+  DEFAULT_PERIOD,
+  PERIODS,
+} from './constants/periods.js'
 
 /**
  * Componente raiz da aplicação.
@@ -19,6 +27,8 @@ export default function App() {
   const [to, setTo] = useState(DEFAULT_TO)
   // Valor digitado pelo usuário (guardado como texto).
   const [amount, setAmount] = useState('100')
+  // Período selecionado no histórico.
+  const [periodId, setPeriodId] = useState(DEFAULT_PERIOD)
 
   // Hooks que cuidam de talking com a API.
   const { data: currencies, error: currenciesError, reload: reloadCurrencies } =
@@ -29,6 +39,12 @@ export default function App() {
     error: rateError,
     reload: reloadRate,
   } = useLatestRate(from, to)
+  const {
+    rows,
+    loading: historyLoading,
+    error: historyError,
+    reload: reloadHistory,
+  } = useHistory(from, to, periodId)
 
   /**
    * Inverte origem e destino.
@@ -95,6 +111,36 @@ export default function App() {
           onSwap={handleSwap}
           onRetry={reloadRate}
         />
+
+        <section className={styles.history} aria-labelledby="history-title">
+          <div className={styles.historyHeader}>
+            <div>
+              <h2 className={styles.historyTitle} id="history-title">
+                Histórico do par
+              </h2>
+              <p className={styles.historySubtitle}>
+                {from} → {to} · os dados são atualizados a cada escolha de par ou
+                período.
+              </p>
+            </div>
+
+            <PeriodSelector
+              periods={PERIODS}
+              activeId={periodId}
+              onChange={setPeriodId}
+              disabled={historyLoading}
+            />
+          </div>
+
+          <RateChart
+            rows={rows}
+            from={from}
+            to={to}
+            loading={historyLoading}
+            error={historyError}
+            onRetry={reloadHistory}
+          />
+        </section>
       </main>
 
       <footer className={styles.footer}>
