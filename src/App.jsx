@@ -4,6 +4,7 @@ import PeriodSelector from './components/PeriodSelector.jsx'
 import StatusMessage from './components/StatusMessage.jsx'
 import HistoryTable from './components/HistoryTable.jsx'
 import styles from './App.module.css'
+import logo from './assets/logo.svg'
 import { useCurrencies } from './hooks/useCurrencies.js'
 import { useLatestRate } from './hooks/useLatestRate.js'
 import { useHistory } from './hooks/useHistory.js'
@@ -67,19 +68,7 @@ export default function App() {
         <div className={styles.headerInner}>
           <div className={styles.brand}>
             <span className={styles.logo} aria-hidden="true">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 17l6-6 4 4 8-8" />
-                <path d="M14 7h7v7" />
-              </svg>
+              <img src={logo} alt="" width="20" height="20" />
             </span>
 
             <div>
