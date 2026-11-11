@@ -18,16 +18,16 @@ export function useLatestRate(from, to) {
   const [error, setError] = useState('')
   const [reloadToken, setReloadToken] = useState(0)
 
+  // "Hoje" é calculado uma única vez, na montagem do hook.
+  // (o inicializador preguiçoso do useState roda só na primeira renderização)
+  const [today] = useState(() => toISODate(new Date()))
+
   // Par igual: taxa 1, sem tocar na rede.
   const isSameCurrency = from === to
 
   useEffect(() => {
-    if (isSameCurrency) {
-      setData({ rate: 1, date: toISODate(new Date()) })
-      setLoading(false)
-      setError('')
-      return undefined
-    }
+    // Par igual: não há requisição nenhuma (a API devolveria erro).
+    if (isSameCurrency) return undefined
 
     const controller = new AbortController()
 
@@ -55,6 +55,17 @@ export function useLatestRate(from, to) {
   }, [from, to, isSameCurrency, reloadToken])
 
   const reload = useCallback(() => setReloadToken((token) => token + 1), [])
+
+  // Par igual: a taxa é 1 e a data é hoje. Esse valor é **derivado** durante a
+  // renderização, sem precisar de requisição nem de `useState`.
+  if (isSameCurrency) {
+    return {
+      data: { rate: 1, date: today },
+      loading: false,
+      error: '',
+      reload,
+    }
+  }
 
   return { data, loading, error, reload }
 }
