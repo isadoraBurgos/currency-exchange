@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import Converter from './components/Converter.jsx'
 import PeriodSelector from './components/PeriodSelector.jsx'
-import RateChart from './components/RateChart.jsx'
+import StatusMessage from './components/StatusMessage.jsx'
 import HistoryTable from './components/HistoryTable.jsx'
 import styles from './App.module.css'
 import { useCurrencies } from './hooks/useCurrencies.js'
@@ -13,6 +13,11 @@ import {
   DEFAULT_PERIOD,
   PERIODS,
 } from './constants/periods.js'
+
+// O Recharts é uma biblioteca grande. Carregá-la sob demanda (lazy loading)
+// deixa o JavaScript inicial da aplicação bem menor: o navegador baixa o
+// arquivo do gráfico só quando ele realmente vai aparecer na tela.
+const RateChart = lazy(() => import('./components/RateChart.jsx'))
 
 /**
  * Componente raiz da aplicação.
@@ -89,12 +94,12 @@ export default function App() {
 
       <main className={styles.main}>
         {currenciesError && (
-          <p role="alert" className={styles.tagline}>
-            {currenciesError}{' '}
-            <button type="button" onClick={reloadCurrencies}>
+          <div className={styles.alert} role="alert">
+            <span>{currenciesError}</span>
+            <button type="button" className={styles.alertButton} onClick={reloadCurrencies}>
               Tentar novamente
             </button>
-          </p>
+          </div>
         )}
 
         <Converter
@@ -133,14 +138,22 @@ export default function App() {
             />
           </div>
 
-          <RateChart
-            rows={rows}
-            from={from}
-            to={to}
-            loading={historyLoading}
-            error={historyError}
-            onRetry={reloadHistory}
-          />
+          {/* O `Suspense` mostra o "carregando" enquanto o arquivo do gráfico
+              termina de ser baixado. */}
+          <Suspense
+            fallback={
+              <StatusMessage type="loading" message="Preparando o gráfico..." />
+            }
+          >
+            <RateChart
+              rows={rows}
+              from={from}
+              to={to}
+              loading={historyLoading}
+              error={historyError}
+              onRetry={reloadHistory}
+            />
+          </Suspense>
 
           <HistoryTable
             rows={rows}

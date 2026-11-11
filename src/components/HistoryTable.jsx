@@ -208,59 +208,73 @@ export default function HistoryTable({
       )}
 
       {hasRows && (
-        <div className={styles.tableWrapper}>
-          <table className={styles.tableElement}>
-            <caption className="visually-hidden">
-              Histórico de cotações de {from} para {to}
-            </caption>
+        <>
+          <p className={styles.scrollHint}>
+            Deslize a tabela para o lado para ver todas as colunas.
+          </p>
 
-            <thead>
-              <tr>
-                <th scope="col">
-                  <button
-                    type="button"
-                    className={styles.sortable}
-                    onClick={() => handleSort('date')}
-                    aria-label="Ordenar por data"
-                  >
-                    Data
-                    <span className={styles.arrow} aria-hidden="true">
-                      {sortKey === 'date' ? (sortDirection === 'asc' ? '▲' : '▼') : '↕'}
-                    </span>
-                  </button>
-                </th>
+          <div className={styles.tableWrapper}>
+            <table className={styles.tableElement}>
+              <caption className="visually-hidden">
+                Histórico de cotações de {from} para {to}
+              </caption>
 
-                <th scope="col">Origem</th>
-                <th scope="col">Destino</th>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <button
+                      type="button"
+                      className={styles.sortable}
+                      onClick={() => handleSort('date')}
+                      aria-label="Ordenar por data"
+                    >
+                      Data
+                      <span className={styles.arrow} aria-hidden="true">
+                        {sortKey === 'date'
+                          ? sortDirection === 'asc'
+                            ? '▲'
+                            : '▼'
+                          : '↕'}
+                      </span>
+                    </button>
+                  </th>
 
-                <th scope="col" className={styles.numeric}>
-                  <button
-                    type="button"
-                    className={styles.sortable}
-                    onClick={() => handleSort('rate')}
-                    aria-label="Ordenar por cotação"
-                  >
-                    Cotação
-                    <span className={styles.arrow} aria-hidden="true">
-                      {sortKey === 'rate' ? (sortDirection === 'asc' ? '▲' : '▼') : '↕'}
-                    </span>
-                  </button>
-                </th>
-              </tr>
-            </thead>
+                  <th scope="col">Origem</th>
+                  <th scope="col">Destino</th>
 
-            <tbody>
-              {visibleRows.map((row) => (
-                <tr key={`${row.base}-${row.quote}-${row.date}`}>
-                  <td>{formatDateBR(row.date)}</td>
-                  <td>{row.base}</td>
-                  <td>{row.quote}</td>
-                  <td className={styles.numeric}>{formatRate(row.rate)}</td>
+                  <th scope="col" className={styles.numeric}>
+                    <button
+                      type="button"
+                      className={styles.sortable}
+                      onClick={() => handleSort('rate')}
+                      aria-label="Ordenar por cotação"
+                    >
+                      Cotação
+                      <span className={styles.arrow} aria-hidden="true">
+                        {sortKey === 'rate'
+                          ? sortDirection === 'asc'
+                            ? '▲'
+                            : '▼'
+                          : '↕'}
+                      </span>
+                    </button>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {visibleRows.map((row) => (
+                  <tr key={`${row.base}-${row.quote}-${row.date}`}>
+                    <td>{formatDateBR(row.date)}</td>
+                    <td>{row.base}</td>
+                    <td>{row.quote}</td>
+                    <td className={styles.numeric}>{formatRate(row.rate)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

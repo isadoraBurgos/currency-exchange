@@ -196,9 +196,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Dica que aparece só no celular: a tabela rola dentro do próprio contêiner. */
+.scrollHint {
+  display: none;
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
 @media (max-width: 860px) {
   .filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scrollHint {
+    display: block;
   }
 }
 
